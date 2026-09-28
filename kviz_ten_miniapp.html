@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Тест «Где живёт твоя Тень»</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --page-bg: #170807;
+    --surface: #241109;
+    --surface-line: #3D2013;
+    --track: #3D2013;
+    --ink: #F3E4DE;
+    --body: #C9B7AC;
+    --muted: #9C877D;
+    --link: #D9A93B;
+    --btn-bg: #8B2430;
+    --btn-bg-active: #6E1B25;
+    --on-accent: #FFFFFF;
+    --answer-bg: #241109;
+    --answer-line: #3D2013;
+    --footer-bg: #100403;
+    --footer-text: #8A776D;
+    --accent: #D9A93B;
+    --accent-fill: #8B2430;
+    --accent-bg: #2A130C;
+    --accent-line: #4A2A17;
+    --dark: #0E0403;
+    --dark-text: #D9C2B0;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--page-bg);
+    color: var(--body);
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 420px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card {
+    background: var(--page-bg);
+    padding: 40px 20px 28px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .footer {
+    background: var(--footer-bg);
+    color: var(--footer-text);
+    text-align: center;
+    font-size: 12px;
+    padding: 12px 16px;
+    letter-spacing: 0.02em;
+    border-top: 1px solid var(--surface-line);
+  }
+
+  .display {
+    font-family: Georgia, "Times New Roman", serif;
+  }
+
+  /* ---------- progress ---------- */
+  .progress-track {
+    height: 3px;
+    background: var(--track);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent-fill);
+    width: 0%;
+    transition: width 0.35s ease;
+  }
+  .progress-label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .progress-block-label {
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 22px;
+  }
+
+  /* ---------- block screen (все вопросы блока на одном экране) ---------- */
+  .block-title {
+    font-size: 27px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 8px;
+  }
+  .block-subtitle {
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--body);
+    margin: 0 0 24px;
+  }
+  .q-card {
+    background: var(--surface);
+    border: 1px solid var(--surface-line);
+    border-radius: 18px;
+    padding: 24px 20px;
+    margin-bottom: 16px;
+  }
+  .q-item + .q-item {
+    margin-top: 22px;
+    padding-top: 22px;
+    border-top: 1px solid var(--track);
+  }
+  .q-label {
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .q-text {
+    font-size: 16.5px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--ink);
+    margin: 0 0 14px;
+  }
+  .q-answers {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .q-opt {
+    width: 100%;
+    text-align: left;
+    border-radius: 12px;
+    padding: 13px 15px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14.5px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--answer-line);
+    background: var(--answer-bg);
+    color: var(--ink);
+    transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .q-opt:active { transform: scale(0.98); }
+  .q-opt.selected {
+    background: var(--btn-bg);
+    color: var(--on-accent);
+    border-color: var(--btn-bg);
+  }
+  .block-nav {
+    margin-top: 6px;
+  }
+
+  /* ---------- screens ---------- */
+  .screen {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+  }
+  .screen.active {
+    display: flex;
+    animation: fadeIn 0.4s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---------- start screen ---------- */
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin: 0 0 14px;
+  }
+  .start-title {
+    font-size: 27px;
+    line-height: 1.28;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 20px;
+  }
+  .start-text {
+    font-size: 15.5px;
+    line-height: 1.6;
+    color: var(--body);
+    margin: 0 0 16px;
+  }
+  .start-note {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--muted);
+    margin: 6px 0 24px;
+  }
+  .spacer { flex: 1; }
+
+  /* ---------- buttons ---------- */
+  .btn {
+    display: block;
+    width: 100%;
+    border: none;
+    border-radius: 14px;
+    padding: 17px 20px;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary {
+    background: var(--btn-bg);
+    color: var(--on-accent);
+  }
+  .btn-primary:active { background: var(--btn-bg-active); }
+  .btn-text {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 8px 0;
+    display: block;
+    margin: 14px auto 0;
+    text-align: center;
+    width: 100%;
+  }
+  .consent-text {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--muted);
+    margin-top: 14px;
+  }
+  .consent-text a {
+    color: var(--link);
+    text-decoration: none;
+  }
+
+  /* ---------- question screen ---------- */
+  .question-text {
+    font-size: 21px;
+    line-height: 1.38;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 26px;
+    min-height: 108px;
+  }
+  .answer-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: auto;
+  }
+  .answer-opt {
+    width: 100%;
+    text-align: left;
+    border-radius: 14px;
+    padding: 16px 18px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15.5px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--answer-line);
+    background: var(--answer-bg);
+    color: var(--ink);
+    transition: transform 0.12s ease, background 0.12s ease;
+  }
+  .answer-opt:active {
+    transform: scale(0.98);
+    background: var(--btn-bg);
+    color: var(--on-accent);
+    border-color: var(--btn-bg);
+  }
+
+  .back-link {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 18px;
+    display: inline-block;
+  }
+
+  /* ---------- result screen (рентген-стиль) ---------- */
+  .result-title {
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--ink);
+    margin: 0 0 14px;
+  }
+  .result-intro {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--body);
+    margin: 0 0 24px;
+  }
+
+  .stat-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    flex: 1;
+    border-radius: 14px;
+    padding: 16px 14px;
+    background: var(--surface);
+    border: 1px solid var(--surface-line);
+  }
+  .stat-card.accent {
+    background: var(--accent-fill);
+    border: none;
+    color: var(--on-accent);
+  }
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--muted);
+  }
+  .stat-card.accent .stat-label { color: rgba(255,255,255,0.85); }
+  .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .stat-card.accent .stat-value { color: var(--on-accent); }
+  .stat-note {
+    font-size: 11px;
+    margin-top: 8px;
+    color: var(--muted);
+  }
+  .stat-card.accent .stat-note { color: rgba(255,255,255,0.85); }
+
+  .surface-card {
+    background: var(--surface);
+    border: 1px solid var(--surface-line);
+    border-radius: 18px;
+    padding: 22px 20px;
+    margin-bottom: 18px;
+  }
+  .surface-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .surface-heading {
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 18px;
+  }
+
+  .bar-row { margin-bottom: 16px; }
+  .bar-row:last-child { margin-bottom: 0; }
+  .bar-top {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .bar-track {
+    height: 7px;
+    border-radius: 4px;
+    background: var(--track);
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 7px;
+    border-radius: 4px;
+    background: var(--accent-fill);
+  }
+
+  .list-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--track);
+  }
+  .list-row:last-child { border-bottom: none; }
+  .list-badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--page-bg);
+    color: var(--ink);
+    font-size: 12.5px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .list-info { flex-grow: 1; }
+  .list-title { font-size: 14.5px; font-weight: 700; color: var(--ink); }
+  .list-verdict { font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .list-value { font-size: 15px; font-weight: 700; color: var(--ink); }
+
+  /* voice placeholder */
+  .voice-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-line);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin: 4px 0 10px;
+  }
+  .voice-play {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--accent-fill);
+    color: var(--on-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .voice-wave {
+    flex: 1;
+    height: 20px;
+    border-radius: 4px;
+    opacity: 0.6;
+    background: repeating-linear-gradient(90deg, var(--accent-line) 0 3px, transparent 3px 7px);
+  }
+  .voice-duration { font-size: 12px; color: var(--muted); flex-shrink: 0; }
+  .voice-note {
+    font-size: 12.5px;
+    font-style: italic;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  .cta-dark {
+    background: var(--dark);
+    border-radius: 18px;
+    padding: 28px 22px;
+    color: #FFFFFF;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 18px;
+  }
+  .cta-dark::before {
+    content: "";
+    position: absolute;
+    top: -50px; right: -50px;
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    background: var(--accent-fill);
+    opacity: 0.5;
+  }
+  .cta-dark-inner { position: relative; }
+  .cta-dark-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--dark-text);
+    margin-bottom: 10px;
+  }
+  .cta-dark-title {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 0 0 10px;
+  }
+  .cta-dark-text {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--dark-text);
+    margin: 0 0 18px;
+  }
+  .cta-dark-text strong { color: #FFFFFF; }
+  .cta-dark .btn-primary {
+    background: var(--accent);
+    color: #1A0806;
+  }
+
+  /* ---------- program screen (лендинг) ---------- */
+  .program-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .program-top-row .back-link { margin: 0; font-size: 12px; letter-spacing: 0.06em; }
+  .program-dots {
+    color: var(--accent-line);
+    font-size: 12px;
+    letter-spacing: 3px;
+    overflow: hidden;
+    white-space: nowrap;
+    margin-bottom: 24px;
+  }
+  .badge-predzapis {
+    display: inline-block;
+    background: var(--accent-fill);
+    color: var(--on-accent);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 6px 12px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+  }
+  .program-eyebrow-top {
+    font-size: 13px;
+    color: var(--accent);
+    line-height: 1.5;
+    margin: 0 0 16px;
+  }
+  .program-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--ink);
+    text-align: left;
+    margin: 0 0 18px;
+  }
+  .program-para {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--body);
+    margin: 0 0 16px;
+  }
+  .program-para strong { color: var(--accent); }
+  .highlight-box {
+    background: var(--accent-bg);
+    border-radius: 12px;
+    padding: 16px 18px;
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--ink);
+    font-weight: 600;
+    margin: 4px 0 22px;
+  }
+  .program-divider {
+    border: none;
+    border-top: 1px solid var(--surface-line);
+    margin: 26px 0;
+  }
+  .program-section-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 0 0 18px;
+  }
+  .module-card { margin-bottom: 22px; }
+  .module-title { font-size: 15.5px; font-weight: 700; color: var(--ink); margin: 0 0 4px; }
+  .module-question { font-size: 14px; font-style: italic; color: var(--muted); margin: 0 0 8px; }
+  .module-bullets { list-style: none; padding: 0; margin: 0; }
+  .module-bullets li {
+    font-size: 14px; line-height: 1.55; color: var(--body);
+    margin-bottom: 4px; padding-left: 14px; position: relative;
+  }
+  .module-bullets li::before { content: "•"; position: absolute; left: 0; color: var(--accent); }
+  .plain-list { list-style: none; padding: 0; margin: 0 0 4px; }
+  .plain-list li {
+    font-size: 14.5px; line-height: 1.6; color: var(--body);
+    margin-bottom: 8px; padding-left: 16px; position: relative;
+  }
+  .plain-list li::before { content: "•"; position: absolute; left: 0; color: var(--muted); }
+  .disclaimer-text { font-size: 12px; line-height: 1.5; color: var(--muted); margin: 4px 0 24px; }
+  .two-col-row { display: flex; gap: 10px; margin-bottom: 22px; }
+  .two-col-card {
+    flex: 1; background: var(--surface); border: 1px solid var(--surface-line);
+    border-radius: 12px; padding: 14px 14px;
+  }
+  .two-col-card-label { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: var(--muted); margin: 0 0 6px; }
+  .two-col-card-text { font-size: 13px; line-height: 1.45; color: var(--body); }
+  .gift-card { background: var(--accent-bg); border-radius: 14px; padding: 18px 18px 6px; margin-bottom: 22px; }
+  .gift-card-label { font-size: 12px; font-weight: 700; letter-spacing: 0.03em; color: var(--accent); margin: 0 0 12px; }
+  .gift-item { font-size: 14px; line-height: 1.55; color: var(--ink); margin-bottom: 12px; }
+  .gift-item b { display: block; margin-bottom: 2px; }
+  .reassure-text { font-size: 12px; color: var(--accent); text-align: center; margin: 10px 0 4px; }
+  .back-to-result { text-align: center; margin-top: 8px; }
+
+  /* ---------- form screen (заявка) ---------- */
+  .form-title { font-size: 28px; font-weight: 700; line-height: 1.2; color: var(--ink); margin: 0 0 18px; }
+  .form-para b { color: var(--ink); }
+  .form-label { font-size: 12px; font-weight: 700; letter-spacing: 0.05em; color: var(--muted); margin: 20px 0 8px; }
+  .form-input {
+    width: 100%; background: var(--surface); border: 1px solid var(--surface-line);
+    border-radius: 12px; padding: 14px 16px; font-family: 'Inter', sans-serif;
+    font-size: 16px; color: var(--ink);
+  }
+  .form-input:focus { outline: none; border-color: var(--accent); }
+  .form-question { font-size: 16px; font-weight: 700; color: var(--ink); margin: 28px 0 6px; }
+  .form-question-hint { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 0 0 14px; }
+  .radio-option {
+    width: 100%; text-align: left; border: 1px solid var(--surface-line);
+    background: var(--surface); border-radius: 12px; padding: 14px 16px;
+    font-family: 'Inter', sans-serif; font-size: 15px; color: var(--body);
+    cursor: pointer; margin-bottom: 10px; transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .radio-option.selected { background: var(--btn-bg); border-color: var(--btn-bg); color: var(--on-accent); font-weight: 600; }
+  .checkbox-row { display: flex; align-items: flex-start; gap: 10px; margin: 16px 0; }
+  .checkbox-row input[type="checkbox"] { margin-top: 3px; width: 17px; height: 17px; flex-shrink: 0; accent-color: var(--btn-bg); }
+  .checkbox-row label { font-size: 13px; line-height: 1.5; color: var(--body); }
+  .checkbox-row a { color: var(--link); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ===== СТАРТ ===== -->
+  <div class="screen active" id="screen-start">
+    <div class="card">
+      <p class="eyebrow">Интерактивная диагностика · 3 минуты</p>
+      <h1 class="start-title display">Рентген Тени</h1>
+      <p class="start-text">Разбери 4 сферы жизни, в которой прячется Тень, и найди, какая даст тебе доступ к деньгам, проявленности и достойным отношениям.</p>
+      <p class="start-text">По 4 вопроса про секс, деньги, желания и свободу: твои теневые желания, которых ты всей душой хочешь, но скрываешь.</p>
+      <p class="start-text">Отвечай первое, что придёт в голову.</p>
+      <p class="start-text">В конце получишь полный анализ: оценка проявленности Тени по каждой сфере и персональные рекомендации в голосовом по той стороне, что сильнее всего западает.</p>
+      <div class="spacer"></div>
+      <button class="btn btn-primary" onclick="startQuiz()">Начать</button>
+      <p class="consent-text">Нажимая «Начать», ты соглашаешься с <a href="https://docs.yandex.ru/view/d/pQM872qXegjG2BDJfm6lHCPegnqahzm72s0qoIz-cKg6Z2FYY0NsTm00Zw" target="_blank" rel="noopener">Политикой обработки персональных данных</a>.</p>
+    </div>
+    <div class="footer">@selftest13laika_bot</div>
+  </div>
+
+  <!-- ===== БЛОК ВОПРОСОВ (4 вопроса на экране) ===== -->
+  <div class="screen" id="screen-question">
+    <div class="card">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <p class="progress-label" id="progress-label">Блок 1 из 4</p>
+      <h2 class="block-title display" id="block-title"></h2>
+      <p class="block-subtitle">Отвечай сразу, первым, что придёт в голову. Так честнее.</p>
+
+      <div class="q-card" id="q-card"></div>
+
+      <div class="block-nav">
+        <button class="btn btn-primary" id="block-next-btn" onclick="nextBlock()" disabled>Следующий блок →</button>
+        <button class="back-link" id="back-link" onclick="goBack()" style="visibility:hidden;">← Назад</button>
+      </div>
+    </div>
+    <div class="footer">@selftest13laika_bot</div>
+  </div>
+
+  <!-- ===== РЕЗУЛЬТАТ (рентген) ===== -->
+  <div class="screen" id="screen-result">
+    <div class="card">
+      <p class="eyebrow">Твой результат теста готов</p>
+      <h2 class="result-title display" id="result-title"></h2>
+
+      <div class="stat-row">
+        <div class="stat-card accent">
+          <div class="stat-label">Индекс проявленности Тени</div>
+          <div class="stat-value" id="stat-index">0/100</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Сфер под вопросом</div>
+          <div class="stat-value" id="stat-weak-count">0 из 4</div>
+        </div>
+      </div>
+
+      <div class="surface-card">
+        <div class="surface-label">Главная точка блока</div>
+        <div class="surface-heading" id="bars-heading"></div>
+        <div id="bars-list"></div>
+      </div>
+
+      <div class="surface-card">
+        <div class="surface-label">Что с этим делать?</div>
+        <div class="voice-card">
+          <div class="voice-play">▶</div>
+          <div class="voice-wave"></div>
+          <div class="voice-duration">0:00</div>
+        </div>
+      </div>
+
+      <div class="cta-dark">
+        <div class="cta-dark-inner">
+          <div class="cta-dark-label">Бесплатный эфир: 1 октября в 17:00 по мск</div>
+          <h3 class="cta-dark-title display">Как раскрыть свои теневые стороны, чтобы получать деньги, проявленность и достойные отношения</h3>
+          <div id="cta-dark-text">
+            <p class="cta-dark-text">На эфире разберём, как сделать так, чтобы:</p>
+            <ul style="margin:0 0 18px; padding-left:18px; color:#E4DAD1; font-size:14px; line-height:1.6;">
+              <li>за тобой красиво ухаживали и ценили тебя</li>
+              <li>без чувства вины и недостаточности повышать чек и заявлять о своих услугах</li>
+              <li>выйти на другой уровень жизни, где денег на всё хватает</li>
+              <li>найти деятельность своей мечты и начать проявляться в ней</li>
+              <li>выстраивать границы с людьми, чтобы они уважали тебя</li>
+              <li>понимать уроки жизни и чему они учат</li>
+              <li>соединяться со своей душой и слышать свою интуицию</li>
+            </ul>
+          </div>
+          <a class="btn btn-primary" href="https://t.me/+EcDx62n6KYwxODky" style="text-decoration:none; display:block; box-sizing:border-box; text-align:center;" onclick="return goToSecretRoom(event)">Раскрыть свою Тень на эфире</a>
+        </div>
+      </div>
+
+      <button class="btn-text" onclick="restart()">Пройти ещё раз</button>
+    </div>
+    <div class="footer">@selftest13laika_bot</div>
+  </div>
+
+
+</div>
+
+<script>
+  // ---------- Telegram WebApp ----------
+  const tg = window.Telegram ? window.Telegram.WebApp : null;
+  if (tg) {
+    tg.ready();
+    tg.expand();
+    try { tg.setHeaderColor('#170807'); tg.setBackgroundColor('#170807'); } catch (e) {}
+  }
+  function haptic(style) {
+    if (tg && tg.HapticFeedback) {
+      try { tg.HapticFeedback.impactOccurred(style || 'light'); } catch (e) {}
+    }
+  }
+
+  // ---------- Данные вопросов: 4 блока по 4 утверждения (утверждённая фактура) ----------
+  const BLOCKS = [
+    {
+      key: 'sex',
+      label: 'Секс',
+      caseForm: 'сексе',
+      questions: [
+        'Ты делаешь в сексе то, что действительно хочешь, а не то, что «положено» или «удобно» партнёру?',
+        'Ты открыто говоришь партнёру, что тебе нравится, а что нет?',
+        'Если тебе не понравилось, ты можешь сказать об этом прямо, а не промолчать и подстроиться?',
+        'Тебе легко говорить о сексе вслух, без стеснения и оговорок?'
+      ]
+    },
+    {
+      key: 'money',
+      label: 'Деньги',
+      caseForm: 'деньгах',
+      questions: [
+        'Ты называешь свою цену, не занижая её «на всякий случай», чтобы не спугнуть?',
+        'Ты можешь попросить больше (оплату, подарок, помощь), не чувствуя, что теперь «должна»?',
+        'Ты разрешаешь себе тратить на себя без внутреннего отчёта «а заслужила ли я»?',
+        'Ты веришь, что можешь зарабатывать много, оставаясь мягкой и женственной, а не только «жёсткой и пробивной»?'
+      ]
+    },
+    {
+      key: 'desire',
+      label: 'Желания',
+      caseForm: 'желаниях',
+      questions: [
+        'Ты точно знаешь, чего хочешь, не оглядываясь на то, «как правильно» или «что должна» хотеть?',
+        'Ты говоришь вслух о своих желаниях, даже если они кажутся «слишком» большими или странными?',
+        'Ты позволяешь себе хотеть больше, чем у тебя есть прямо сейчас, без чувства вины?',
+        'Ты действуешь ради своего желания, а не ждёшь, что оно случится само?'
+      ]
+    },
+    {
+      key: 'freedom',
+      label: 'Свобода',
+      caseForm: 'свободе',
+      questions: [
+        'Ты можешь сказать «нет», не объясняя и не оправдывая причину?',
+        'Ты отстаиваешь свои границы, даже если это испортит чьё-то хорошее мнение о тебе?',
+        'Ты можешь открыто не согласиться с кем-то важным для тебя, не боясь стать «плохой»?',
+        'Ты живёшь по своим правилам, а не по тому, «что подумают»?'
+      ]
+    }
+  ];
+
+  const SCALE = [
+    { label: 'Да, точно', value: 3 },
+    { label: 'Скорее да', value: 2 },
+    { label: 'Скорее нет', value: 1 },
+    { label: 'Нет', value: 0 }
+  ];
+
+  // плоский список вопросов с привязкой к блоку
+  const questions = BLOCKS.flatMap((b, bi) =>
+    b.questions.map(text => ({ text, blockIndex: bi }))
+  );
+
+  // ---------- Результаты по блокам ----------
+  const RESULTS = {
+    sex: { headline: 'Твоя Тень живёт в теле и в постели' },
+    money: { headline: 'Твоя Тень живёт в кошельке' },
+    desire: { headline: 'Твоя Тень живёт в молчании о себе' },
+    freedom: { headline: 'Твоя Тень живёт в чужом мнении' }
+  };
+
+  // ---------- Состояние ----------
+  let current = 0;
+  let answers = [];
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+    if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
+  }
+
+  // current, индекс текущего БЛОКА (0..3)
+  function startQuiz() {
+    haptic('light');
+    current = 0;
+    answers = new Array(questions.length).fill(undefined);
+    showScreen('screen-question');
+    renderBlock();
+  }
+
+  function blockIsComplete(blockIndex) {
+    return questions.every((q, i) => q.blockIndex !== blockIndex || answers[i] !== undefined);
+  }
+
+  function renderBlock() {
+    const block = BLOCKS[current];
+    document.getElementById('progress-label').textContent = `Блок ${current + 1} из ${BLOCKS.length}`;
+    document.getElementById('progress-fill').style.width = `${(current / BLOCKS.length) * 100}%`;
+    document.getElementById('block-title').textContent = block.label;
+    document.getElementById('back-link').style.visibility = current > 0 ? 'visible' : 'hidden';
+
+    const card = document.getElementById('q-card');
+    card.innerHTML = '';
+
+    block.questions.forEach((text, qi) => {
+      const globalIndex = current * block.questions.length + qi;
+      const item = document.createElement('div');
+      item.className = 'q-item';
+
+      const label = document.createElement('div');
+      label.className = 'q-label';
+      label.textContent = `Вопрос ${qi + 1} из ${block.questions.length}`;
+
+      const qText = document.createElement('div');
+      qText.className = 'q-text';
+      qText.textContent = text;
+
+      const answersWrap = document.createElement('div');
+      answersWrap.className = 'q-answers';
+
+      SCALE.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'q-opt';
+        btn.textContent = opt.label;
+        if (answers[globalIndex] === opt.value) btn.classList.add('selected');
+        btn.onclick = () => selectAnswer(globalIndex, opt.value);
+        answersWrap.appendChild(btn);
+      });
+
+      item.appendChild(label);
+      item.appendChild(qText);
+      item.appendChild(answersWrap);
+      card.appendChild(item);
+    });
+
+    updateNextBtn();
+  }
+
+  function selectAnswer(globalIndex, value) {
+    haptic('light');
+    answers[globalIndex] = value;
+    renderBlock();
+  }
+
+  function updateNextBtn() {
+    const btn = document.getElementById('block-next-btn');
+    btn.disabled = !blockIsComplete(current);
+    btn.textContent = current === BLOCKS.length - 1 ? 'Смотреть результат →' : 'Следующий блок →';
+  }
+
+  function nextBlock() {
+    if (!blockIsComplete(current)) return;
+    haptic('medium');
+    if (current < BLOCKS.length - 1) {
+      current++;
+      renderBlock();
+      const cardEl = document.querySelector('#screen-question .card');
+      if (cardEl) cardEl.scrollTop = 0;
+      window.scrollTo(0, 0);
+    } else {
+      showResult();
+    }
+  }
+
+  function goBack() {
+    if (current === 0) return;
+    haptic('light');
+    current--;
+    renderBlock();
+    window.scrollTo(0, 0);
+  }
+
+  function showResult() {
+    // сумма баллов по каждому из 4 блоков (макс 12 на блок)
+    const totals = [0, 0, 0, 0];
+    answers.forEach((value, i) => { totals[questions[i].blockIndex] += value; });
+
+    const pct = totals.map(t => Math.round((t / 12) * 100));
+    let weakestIndex = 0;
+    totals.forEach((t, i) => { if (t < totals[weakestIndex]) weakestIndex = i; });
+
+    const weakestBlock = BLOCKS[weakestIndex];
+    const band = RESULTS[weakestBlock.key];
+    const overallScore = totals.reduce((a, b) => a + b, 0);
+    const overallPct = Math.round((overallScore / 48) * 100);
+    const weakCount = pct.filter(p => p < 50).length;
+
+    document.getElementById('result-title').textContent = band.headline;
+    document.getElementById('stat-index').textContent = `${overallPct}/100`;
+    document.getElementById('stat-weak-count').textContent = `${weakCount} из 4`;
+
+    document.getElementById('bars-heading').textContent = band.headline;
+    const barsList = document.getElementById('bars-list');
+    barsList.innerHTML = '';
+    BLOCKS.forEach((b, i) => {
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      row.innerHTML = `
+        <div class="bar-top"><span>${b.label}</span><span>${pct[i]}%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct[i]}%"></div></div>`;
+      barsList.appendChild(row);
+    });
+
+    showScreen('screen-result');
+    haptic('medium');
+  }
+
+  function restart() {
+    haptic('light');
+    showScreen('screen-start');
+  }
+
+  // ---------- Переход в закрытый канал «Тайная Комната» ----------
+  function openChannel(channelUrl) {
+    if (tg && tg.openTelegramLink) {
+      tg.openTelegramLink(channelUrl);
+    } else {
+      window.open(channelUrl, '_blank');
+    }
+  }
+
+  function goToSecretRoom(e) {
+    haptic('medium');
+    if (tg && tg.openTelegramLink) {
+      e.preventDefault();
+      openChannel('https://t.me/+EcDx62n6KYwxODky');
+      return false;
+    }
+    // иначе сработает обычный переход по href (для тестов в браузере)
+    return true;
+  }
+</script>
+
+</body>
+</html>
