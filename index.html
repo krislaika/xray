@@ -832,6 +832,26 @@
     <div class="footer">@selftest13laika_bot</div>
   </div>
 
+  <!-- ===== ПРЯМАЯ ССЫЛКА: АНКЕТА ПРЕДЗАПИСИ ===== -->
+  <div class="screen" id="screen-anketa">
+    <div class="card">
+      <p class="hello" id="hello-anketa">Привет! Это Крис</p>
+      <h1 class="hero-big" style="font-size:28px">Начни с анкеты предзаписи</h1>
+      <p class="hero-lead">Это не оплата. Ты просто говоришь мне, что хочешь в Игру «Женский Магнетизм», а я сразу даю то, чего не будет у остальных.</p>
+      <div class="of-ticket">
+        <div class="of-ticket-h">Что ты получишь за анкету</div>
+        <div class="of-ticket-row"><span>Сразу</span><b>Эфир «Как раскрыть теневые стороны, чтобы получить деньги, проявленность и достойные отношения»</b></div>
+        <div class="of-ticket-row"><span>Только для своих</span><b>Персональный закрытый канал «Тайная Комната»</b><em>Про старт продаж узнаешь раньше всех</em></div>
+        <div class="of-ticket-row"><span>Только по анкете</span><b>Самая низкая цена</b></div>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn btn-primary btn-pill" onclick="openModalForm()">Заполнить анкету</button>
+      <p class="consent-text">Это 1 минута и бесплатно</p>
+      <p class="consent-text"><a href="#" onclick="startQuiz();return false;" style="color:var(--accent)">Сначала пройти тест «Рентген Тени»</a></p>
+    </div>
+    <div class="footer">@selftest13laika_bot</div>
+  </div>
+
   <!-- ===== БЛОК ВОПРОСОВ (4 вопроса на экране) ===== -->
   <div class="screen" id="screen-question">
     <div class="card">
@@ -1603,6 +1623,7 @@
 
   // ---------- Состояние ----------
   let current = 0;
+  let directParam = null; // старт по прямой ссылке ?startapp=anketa*
   let answers = [];
 
   function showScreen(id) {
@@ -1616,11 +1637,22 @@
   (function setHello() {
     try {
       const u = window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user;
-      if (u && u.first_name) document.getElementById('hello').textContent = 'Привет, ' + u.first_name + '! Это Крис';
+      if (u && u.first_name) { document.getElementById('hello').textContent = 'Привет, ' + u.first_name + '! Это Крис'; document.getElementById('hello-anketa').textContent = 'Привет, ' + u.first_name + '! Это Крис'; }
+    } catch (e) {}
+  })();
+
+  // Прямая ссылка t.me/<bot>/xray?startapp=anketa[_метка]
+  (function routeDeepLink() {
+    try {
+      let sp = (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.start_param) || '';
+      if (!sp) { const q = new URLSearchParams(location.search); sp = q.get('startapp') || q.get('tgWebAppStartParam') || ''; }
+      if (!sp) { const h = new URLSearchParams((location.hash || '').replace(/^#/, '')); sp = h.get('tgWebAppStartParam') || ''; }
+      if (/^anketa/i.test(sp)) { directParam = sp; showScreen('screen-anketa'); }
     } catch (e) {}
   })();
 
   function startQuiz() {
+    directParam = null;
     haptic('light');
     current = 0;
     answers = new Array(questions.length).fill(undefined);
@@ -1841,8 +1873,8 @@
     const btn = document.getElementById('lead-submit');
     btn.disabled = true; btn.textContent = 'Отправляем…';
     const payload = {
-      name, phone, telegram, tariff: LEAD_LABEL, consentData, consentMailing,
-      source: 'miniapp: ' + (document.getElementById('result-title').textContent || ''),
+      name, phone, telegram, tariff: directParam ? 'Женский Магнетизм · предзапись (прямая ссылка)' : LEAD_LABEL, consentData, consentMailing,
+      source: directParam ? 'miniapp: прямая ссылка (' + directParam + ')' : 'miniapp: ' + (document.getElementById('result-title').textContent || ''),
       submittedAt: new Date().toISOString()
     };
     fetch(GAS_WEB_APP_URL, {
