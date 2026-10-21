@@ -836,18 +836,27 @@
   <div class="screen" id="screen-anketa">
     <div class="card">
       <p class="hello" id="hello-anketa">Привет! Это Крис</p>
-      <h1 class="hero-big" style="font-size:28px">Начни с анкеты предзаписи</h1>
-      <p class="hero-lead">Это не оплата. Ты просто говоришь мне, что хочешь в Игру «Женский Магнетизм», а я сразу даю то, чего не будет у остальных.</p>
+      <h1 class="hero-big" style="font-size:28px">Начни с бесплатного эфира</h1>
       <div class="of-ticket">
-        <div class="of-ticket-h">Что ты получишь за анкету</div>
-        <div class="of-ticket-row"><span>Сразу</span><b>Эфир «Как раскрыть теневые стороны, чтобы получить деньги, проявленность и достойные отношения»</b></div>
-        <div class="of-ticket-row"><span>Только для своих</span><b>Персональный закрытый канал «Тайная Комната»</b><em>Про старт продаж узнаешь раньше всех</em></div>
-        <div class="of-ticket-row"><span>Только по анкете</span><b>Самая низкая цена</b></div>
+        <div class="of-ticket-h">Тема эфира</div>
+        <div class="of-ticket-row"><b>Как распаковать свою Тень, чтобы перейти на другую ветку реальности, где тебе можно все</b>
+          <ul style="margin:10px 0 0;padding-left:18px;color:var(--ink-soft,inherit);line-height:1.5">
+            <li>Деньги, блог, бизнес</li>
+            <li>Проявленность, реализация</li>
+            <li>Достойные мужчины, отношения и ухаживания</li>
+          </ul>
+        </div>
+        <div class="of-ticket-row"><span>Когда</span><b>27 октября в 17:00 по МСК</b></div>
+      </div>
+      <div class="of-ticket" style="margin-top:14px">
+        <div class="of-ticket-h">Зарегистрируйся на эфир и получи сразу</div>
+        <div class="of-ticket-row"><b>Подкасты по правильной коммуникации с мужчинами, чтобы они сами красиво ухаживали и дарили подарки, а не тебе приходилось выпрашивать</b></div>
+        <div class="of-ticket-row"><b>Доступ к эфиру «Как распаковать свою Тень, чтобы перейти на другую ветку реальности, где тебе можно все»</b></div>
+        <div class="of-ticket-row"><b>Лучшие условия на трансформационную игру «Большая Игра: Женский магнетизм — распакуй свою Тень за 1 месяц, чтобы получить деньги, проявленность и достойные отношения»</b></div>
       </div>
       <div class="spacer"></div>
-      <button class="btn btn-primary btn-pill" onclick="openModalForm()">Заполнить анкету</button>
+      <button class="btn btn-primary btn-pill" onclick="openModalForm()">Зарегистрироваться на эфир</button>
       <p class="consent-text">Это 1 минута и бесплатно</p>
-      <p class="consent-text"><a href="#" onclick="startQuiz();return false;" style="color:var(--accent)">Сначала пройти тест «Рентген Тени»</a></p>
     </div>
     <div class="footer">@selftest13laika_bot</div>
   </div>
@@ -1017,8 +1026,8 @@
   <div class="lead-modal">
     <button class="lead-close" onclick="closeModalForm()" aria-label="Закрыть">✕</button>
     <div id="lead-form">
-      <h3 class="lead-title">Анкета предзаписи</h3>
-      <p class="lead-sub">Это 1 минута и бесплатно. После анкеты откроется твоя Тайная Комната с эфиром.</p>
+      <h3 class="lead-title">Анкета регистрации</h3>
+      <p class="lead-sub">Это 1 минута и бесплатно.</p>
       <div class="lead-field"><label for="lf-name">Имя</label><input type="text" id="lf-name" placeholder="Как к тебе обращаться" autocomplete="given-name"></div>
       <div class="lead-field"><label for="lf-phone">Номер телефона</label><input type="tel" id="lf-phone" placeholder="+7 900 000-00-00" autocomplete="tel"></div>
       <div class="lead-field"><label for="lf-tg">Telegram для связи</label><input type="text" id="lf-tg" placeholder="@username"></div>
@@ -1030,8 +1039,8 @@
     </div>
     <div class="lead-success" id="lead-success">
       <h3>Анкета отправлена</h3>
-      <p>Переносим тебя в Тайную Комнату…</p>
-      <a class="btn btn-primary btn-pill" style="text-decoration:none" href="https://t.me/+EcDx62n6KYwxODky" onclick="return goToSecretRoom(event)">Перейти сейчас →</a>
+      <p>Переносим тебя…</p>
+      <a class="btn btn-primary btn-pill" style="text-decoration:none" href="https://t.me/+LFG4Fhlu7ZQ3MzAy" onclick="return goToSecretRoom(event)">Перейти сейчас →</a>
     </div>
   </div>
 </div>
@@ -1826,6 +1835,9 @@
   }
 
   // ---------- Переход в закрытый канал «Тайная Комната» ----------
+  const CHANNEL_QUIZ = 'https://t.me/+EcDx62n6KYwxODky';
+  const CHANNEL_EFIR = 'https://t.me/+LFG4Fhlu7ZQ3MzAy';
+  function currentChannel() { return CHANNEL_EFIR; }
   function openChannel(channelUrl) {
     if (tg && tg.openTelegramLink) {
       tg.openTelegramLink(channelUrl);
@@ -1851,6 +1863,7 @@
         if (!t.value && u.username) t.value = '@' + u.username;
       }
     } catch (err) {}
+    var sl = document.querySelector('#lead-success a.btn'); if (sl) sl.href = currentChannel();
     document.getElementById('lead-form').style.display = 'block';
     document.getElementById('lead-success').style.display = 'none';
     document.getElementById('lead-error').style.display = 'none';
@@ -1885,7 +1898,7 @@
     haptic('medium');
     document.getElementById('lead-form').style.display = 'none';
     document.getElementById('lead-success').style.display = 'block';
-    setTimeout(function () { openChannel('https://t.me/+EcDx62n6KYwxODky'); }, 1800);
+    setTimeout(function () { openChannel(currentChannel()); }, 1800);
   }
 
   function openShot(src) {
@@ -1902,7 +1915,7 @@
     haptic('medium');
     if (tg && tg.openTelegramLink) {
       e.preventDefault();
-      openChannel('https://t.me/+EcDx62n6KYwxODky');
+      openChannel(currentChannel());
       return false;
     }
     // иначе сработает обычный переход по href (для тестов в браузере)
